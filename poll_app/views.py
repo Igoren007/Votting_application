@@ -223,7 +223,6 @@ def test(request):
     return HttpResponse('1')
 
 
-
 def export_xls(request):
     filename = 'ddd.xls'
     response = HttpResponse(content_type='application/ms-excel')
@@ -245,9 +244,27 @@ def export_xls(request):
     # Sheet body, remaining rows
     font_style = xlwt.XFStyle()
 
-    rows = Poll.objects.all().values_list()
+    polls = Poll.objects.all()
+    rows = []
+    for poll in polls:
+        lst = []
+        print(poll.date_start)
+        lst.append(poll.id)
+        lst.append(poll.title)
+        lst.append(poll.date_start)
+        lst.append(poll.date_end)
+        lst.append(poll.max_vote)
+        lst.append(poll.is_active)
+        lst.append('winner')
+        pers = poll.persons.all().values('fio')
+        s = ''
+        for j in pers:
+            s += str(j['fio']) + '; '
+        lst.append(s)
+        rows.append(lst)
+
     for row in rows:
-        print(row[0])
+        # print(row[0])
         row_num += 1
         for col_num in range(len(row)):
             ws.write(row_num, col_num, row[col_num], font_style)
