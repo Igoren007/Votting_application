@@ -1,6 +1,5 @@
 import json
-
-import tasks as tasks
+import xlwt
 from django.db.models import Count
 from django.http import HttpResponse, JsonResponse
 from rest_framework import generics
@@ -214,10 +213,47 @@ def index(request):
     return HttpResponse('123')
 
 
-def export_poll_result(request):
-    # task = export_user_task.delay()
-    task = test_task.delay()
-    return HttpResponse(json.dumps({"task_id": task.id}), content_type='application/json')
+def test(request):
+    # polls = Poll.objects.prefetch_related("persons").all()
+    for poll in Poll.objects.prefetch_related("persons").all():
+        a = poll.persons.all().values_list('fio')
+        s = str(a)
+        print(type(s), s)
+
+    return HttpResponse('1')
+
+
+
+def export_xls(request):
+    filename = 'ddd.xls'
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Poll Data')
+
+    # Sheet header, first row
+    row_num = 0
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns = ['id', 'title', 'date_start', 'date_end', 'max_vote', 'is_active', 'winner', 'persons']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column
+
+    # Sheet body, remaining rows
+    font_style = xlwt.XFStyle()
+
+    rows = Poll.objects.all().values_list()
+    for row in rows:
+        print(row[0])
+        row_num += 1
+        for col_num in range(len(row)):
+            ws.write(row_num, col_num, row[col_num], font_style)
+
+    wb.save(response)
+    return response
 
 
 class PollAPIView(generics.ListAPIView):
