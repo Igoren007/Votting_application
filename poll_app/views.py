@@ -1,19 +1,16 @@
+import json
+
+import tasks as tasks
 from django.db.models import Count
 from django.http import HttpResponse, JsonResponse
 from rest_framework import generics
 from datetime import datetime
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-
-# # Create your views here.
 from poll_app.serializers import *
+from .tasks import export_user_task, test_task
 
-def get_key(d, value):
-    for k, v in d.items():
-        if v == value:
-            return k
+# Create your views here.
 
 
 def index(request):
@@ -215,6 +212,12 @@ def index(request):
     # print(pools)
 
     return HttpResponse('123')
+
+
+def export_poll_result(request):
+    # task = export_user_task.delay()
+    task = test_task.delay()
+    return HttpResponse(json.dumps({"task_id": task.id}), content_type='application/json')
 
 
 class PollAPIView(generics.ListAPIView):

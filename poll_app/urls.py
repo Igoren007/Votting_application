@@ -2,6 +2,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
+    path('export/', export_poll_result, name='export_poll_result'),
     path('api/v1/poll', PollAPIView.as_view()),
     path('api/v1/poll/<int:pk>', PollAPIViewDetail.as_view()),
     path('api/v1/poll/active', PollActiveAPIView.as_view()),
