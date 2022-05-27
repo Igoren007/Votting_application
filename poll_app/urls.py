@@ -3,7 +3,6 @@ from .views import *
 
 urlpatterns = [
     path('xls/', export_xls, name='export_xls'),
-    path('test/', test, name='test'),
     path('api/v1/poll', PollAPIView.as_view()),
     path('api/v1/poll/<int:pk>', PollAPIViewDetail.as_view()),
     path('api/v1/poll/active', PollActiveAPIView.as_view()),

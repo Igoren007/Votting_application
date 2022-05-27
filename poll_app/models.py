@@ -1,6 +1,9 @@
 from django.db import models
 
 # Create your models here.
+from django.utils.safestring import mark_safe
+
+
 class Person(models.Model):
     fio = models.CharField(max_length=250)
     age = models.IntegerField()

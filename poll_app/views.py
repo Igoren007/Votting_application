@@ -1,13 +1,15 @@
 import json
 import xlwt
+from django.contrib.auth.models import User
 from django.db.models import Count
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, FileResponse
 from rest_framework import generics
 from datetime import datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from poll_app.serializers import *
-from .tasks import export_user_task, test_task
+from .tasks import send_mail_task, make_xls_export
+
 
 # Create your views here.
 
@@ -213,63 +215,12 @@ def index(request):
     return HttpResponse('123')
 
 
-def test(request):
-    # polls = Poll.objects.prefetch_related("persons").all()
-    for poll in Poll.objects.prefetch_related("persons").all():
-        a = poll.persons.all().values_list('fio')
-        s = str(a)
-        print(type(s), s)
-
-    return HttpResponse('1')
-
-
 def export_xls(request):
-    filename = 'ddd.xls'
-    response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = f'attachment; filename={filename}'
+    make_xls_export.delay()
+    filename = f'Results_{datetime.now().date()}.xls'
+    response = FileResponse(open(filename, 'rb'))
+    send_mail_task.delay()
 
-    wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet('Poll Data')
-
-    # Sheet header, first row
-    row_num = 0
-    font_style = xlwt.XFStyle()
-    font_style.font.bold = True
-
-    columns = ['id', 'title', 'date_start', 'date_end', 'max_vote', 'is_active', 'winner', 'persons']
-
-    for col_num in range(len(columns)):
-        ws.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column
-
-    # Sheet body, remaining rows
-    font_style = xlwt.XFStyle()
-
-    polls = Poll.objects.all()
-    rows = []
-    for poll in polls:
-        lst = []
-        print(poll.date_start)
-        lst.append(poll.id)
-        lst.append(poll.title)
-        lst.append(poll.date_start)
-        lst.append(poll.date_end)
-        lst.append(poll.max_vote)
-        lst.append(poll.is_active)
-        lst.append('winner')
-        pers = poll.persons.all().values('fio')
-        s = ''
-        for j in pers:
-            s += str(j['fio']) + '; '
-        lst.append(s)
-        rows.append(lst)
-
-    for row in rows:
-        # print(row[0])
-        row_num += 1
-        for col_num in range(len(row)):
-            ws.write(row_num, col_num, row[col_num], font_style)
-
-    wb.save(response)
     return response
 
 
