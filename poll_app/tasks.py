@@ -1,20 +1,8 @@
-import os
 import xlwt
 from datetime import datetime
-import shutil
-import tempfile
-from os import name
-from re import template
-
-from django.http import HttpResponse, FileResponse
-
 from poll_app import celery_app
-from django.conf import settings
 from django.contrib.auth.models import User
-from django.utils import timezone
-from openpyxl import Workbook, load_workbook
 from django.core.mail import send_mail
-
 from poll_app.models import Poll
 
 
@@ -60,7 +48,6 @@ def make_xls_export(self):
         rows.append(lst)
 
     for row in rows:
-        # print(row[0])
         row_num += 1
         for col_num in range(len(row)):
             ws.write(row_num, col_num, row[col_num], font_style)

@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from poll_app.models import Poll, Votes, Person
 
 
