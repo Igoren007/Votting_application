@@ -12,6 +12,9 @@ from .tasks import send_mail_task, make_xls_export
 
 
 def export_xls(request):
+    # 3. вьюха не решает задачу генерации и отправки файла на почту;
+    # результат из make_xls_export не передается в send_mail_task; все работает за
+    # счет того, что файл генерируется по общей маске даты.
     make_xls_export.delay()
     filename = f'Results_{datetime.now().date()}.xls'
     response = FileResponse(open(filename, 'rb'))
@@ -46,6 +49,8 @@ class PollActiveAPIView(generics.ListAPIView):
                         active_polls.append(poll)
                     else:
                         winner = d[max_id]
+                        # 4. смена признака происходит во вьюхах GET, что противоречит
+                        # принципам REST; если вьюху не дернуть, признак не сменится???
                         Poll.objects.filter(id=poll.id).update(is_active=False)
                         Poll.objects.filter(id=poll.id).update(winner=winner)
 
@@ -76,6 +81,7 @@ class PollFinishedAPIView(generics.ListAPIView):
                 finished_polls.append(poll)
                 Poll.objects.filter(id=poll.id).update(is_active=False)
             else:
+                # 5. что такое агрегация, как ее можно применить здесь?
                 votes = Votes.objects.filter(poll=poll.id).values('person_id').annotate(Count('id'))
                 if votes:
                     d = {}
@@ -96,6 +102,10 @@ class PollFinishedAPIView(generics.ListAPIView):
 #голосование за персонажа
 @api_view(['POST',])
 def add_vote(request):
+    # 6. нет проверок, что:
+    #  - голосование активно;
+    #  - не достигнут максимум (если он задан);
+    #  - допускается конкурентность.
     serializer = VoteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save()

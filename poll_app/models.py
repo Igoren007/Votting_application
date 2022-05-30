@@ -5,6 +5,7 @@ from django.db import models
 
 class Person(models.Model):
     fio = models.CharField(max_length=250)
+    # 1. что делать через год, когда возраст изменится?
     age = models.IntegerField()
     bio = models.TextField()
     photo = models.ImageField(blank=True, upload_to='images/')
@@ -18,6 +19,8 @@ class Poll(models.Model):
     date_start = models.DateField()
     date_end = models.DateField()
     max_vote = models.IntegerField(blank=True)
+    # 2. данный признак должен быть вычисляемым (необходимо сформулировать условия и
+    # создать аннотацию в queryset'е)
     is_active = models.BooleanField(default=True)
     winner = models.ForeignKey('Person', blank=True, null=True, on_delete=models.SET_NULL, related_name='winner')
     persons = models.ManyToManyField(Person)
